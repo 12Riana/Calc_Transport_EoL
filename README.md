@@ -21,15 +21,15 @@
 ### Assumptions
 In order to simplify the calculation, this project decided to apply several assumptions.
 1. "Photovoltaic solar panels consist of 95% recyclable materials" (Clean Energy Council, 2025). This means almost 100% of PV components can be recycled and sold. Hence, our assumption is 100% of PV materials can be recycled and would be available to be sold to supplier.
-2. The composition of material in each PV module: 
+2. The composition of material in each PV module: (still doing research)
 3. The capacity of each solar EoL module is 300 W.
 4. The dimension of each solar EoL module is 1.0m x 1.7m x 0.035m.
 5. Truck capacity for transporting EoL modules: 7,000 kg. 
 6. Truck dimension: 2.2 m x 6.2 m x 2.4 m.
-7. Transport cost is based on fuel only.
+7. Transport cost is currently based on fuel only. The price of diesel fuel in Australia is AUD 2.25 per liter based on the latest update from 18 May 2026 (source: https://www.globalpetrolprices.com/Australia/diesel_prices/). Truck diesel efficiency is 17L/100km (source: https://www.truck1.eu/blog/isuzu-nqr75-nqr75r-tech-specs-t31726).
 8. For estimating monetary value and converting different units, we use the following estimation. \
     30kg/panel \
-    0.6kW/panel \
+    0.3kW/panel \
     50kg/kW \
     10$/kw = worth of panel power \
     10$/50kg = 0.2$/kg = worth of panel waste
