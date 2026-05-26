@@ -28,9 +28,9 @@ In order to simplify the calculation, this project decided to apply several assu
 6. Truck dimension: 2.2 m x 6.2 m x 2.4 m.
 7. Transport cost is currently based on fuel only. The price of diesel fuel in Australia is AUD 2.25 per liter based on the latest update from 18 May 2026 (source: https://www.globalpetrolprices.com/Australia/diesel_prices/). Truck diesel efficiency is 17L/100km (source: https://www.truck1.eu/blog/isuzu-nqr75-nqr75r-tech-specs-t31726).
 8. For estimating monetary value and converting different units, we use the following estimation. \
-    30kg/panel \
+    18kg/panel \
     0.3kW/panel \
-    50kg/kW \
+    60kg/kW \
     10$/kw = worth of panel power \
     10$/50kg = 0.2$/kg = worth of panel waste
 
