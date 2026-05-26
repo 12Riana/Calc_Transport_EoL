@@ -21,7 +21,8 @@
 ### Assumptions
 In order to simplify the calculation, this project decided to apply several assumptions.
 1. "Photovoltaic solar panels consist of 95% recyclable materials" (Clean Energy Council, 2025). This means almost 100% of PV components can be recycled and sold. Hence, our assumption is 100% of PV materials can be recycled and would be available to be sold to supplier.
-2. The composition of material in each PV module: (still doing research)
+2. We use one composition panel mentioned in 'Recycling c-Si PV Modules: A Review, a Proposed Energy Model and a Manufacturing Comparison.' The composition of material in each PV module is
+72% glass, 15% of Al (frame), 7% EVA and Tedlar (encapsulant and back sheet), 2.5% Si, 0.8% Cu, 0.03% Ag, 0.1% Sn and 0.1% Pb (source: https://doi.org/10.3390/en15228419).
 3. The capacity of each solar EoL module is 300 W.
 4. The dimension of each solar EoL module is 1.0m x 1.7m x 0.035m.
 5. Truck capacity for transporting EoL modules: 7,000 kg. 
