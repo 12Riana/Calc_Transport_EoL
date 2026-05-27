@@ -41,7 +41,13 @@ This project uses 9 different recycling sites that are collected from individual
 Note: this project allows user to add more power stations, recycling sites, and/or suppliers places, so the list from data collection step are not fixed.
 
 ### Calculation
+For conventional recycling, the calculator works as the following.
+1. Calculate the maximum capacity (number of panels) that one truck can carry in one go.
+2. Calculate the number of trucks needed to carry EoL based on how many kW/kg/number of panels inputted by user.
+3. Calculate the fuel cost of driving on path recycling site -> power stations -> recycling site.
+4. Calculate the approximate worth of panel waste in AU$.
 
+For mobile recycling, the calculator works as the following.
 
 ## Output
 One Jupyter Notebook file named `code.ipynb` containing code for estimating transportation costs of Conventional and Mobile Recycling of Solar EoL modules to suppliers of each recoverable material in Australia. This file serves as the calculator, where user can input information while running the code, and eventually will receive the calculation result.
@@ -51,7 +57,7 @@ To get the calculator up and running on their local machine, user needs to follo
 1. User must have Jupyter Notebook installed on their device.
 2. Download the project files by running the following command in terminal.
 ```bash
-   git clone [https://github.com/12Riana/Calc_Transport_EoL.git](https://github.com/12Riana/Calc_Transport_EoL.git)
+   git clone https://github.com/12Riana/Calc_Transport_EoL.git
 ```
 3. Launch Jupyter Notebook and open the `code.ipynb` file.
 4. Run the notebook cells sequentially. When prompted, input the required parameters to process the calculations.
@@ -63,7 +69,7 @@ To get the calculator up and running on their local machine, user needs to follo
 4. Note that not all suppliers would willing to buy extracted materials from recycle solar panel. Hence, user can filter out and adjust suppliers list to make sure that the list only includes suppliers that are willing to buy the recoverable materials from solar PV waste.
 5. The calculator is provided in Jupyter Notebook file with less interactive UI/UX and the raw code is still visible to user. This can be improved by creating another user interface for the calculator so user can use the calculator without looking at the raw code.
 
-## Reference
+## References
 [^1]: Clean Energy Council. (2025). [Recycling Wind Turbines, Solar Panels and Batteries: Fact Sheet](https://cleanenergycouncil.org.au/for-consumers/fact-sheets/recycling-get-the-facts/recyling-wind-turbines-solar-panels-batteries).
 [^2]: Mulazzani, A., Eleftheriadis, P., Leva, S (2022). [Recycling c-Si PV Modules: A Review, a Proposed Energy Model and a Manufacturing Comparison](https://doi.org/10.3390/en15228419).
 [^3]: GlobalPetrolPrices. (2026, May 18). [Australia Diesel prices](https://www.globalpetrolprices.com/Australia/diesel_prices/).
