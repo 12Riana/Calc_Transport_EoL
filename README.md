@@ -22,8 +22,10 @@ In order to simplify the calculation, this project decided to apply several assu
 4. The dimension of each solar EoL module is 1.0m x 1.7m x 0.035m.
 5. Truck capacity for transporting EoL modules: 7,000 kg. 
 6. Truck dimension: 2.2 m x 6.2 m x 2.4 m.
-7. Transport cost is currently based on fuel only. The price of diesel fuel in Australia is AUD 2.25 per liter based on the latest update from 18 May 2026.[^3] Truck diesel efficiency is 17L/100km.[^4]
-8. For estimating monetary value and converting different units, we use the following estimation. \
+7. Transport cost is currently based on fuel only. The price of diesel fuel in Australia is AUD 2.25 per liter based on the latest update from 18 May 2026.[^3] Truck diesel efficiency is 17L/100km.[^4] Average speed is 45km/hr.
+8. Labour Cost assumptions: 45$/hr for operator, 42$/hr for driver, 1 driver 2 operators per truck.
+9. Mobile Recycling assumptions: parking site is 120km away from power station since the parking site is not established yet.
+10. For estimating monetary value and converting different units, we use the following estimation. \
     18kg/panel \
     0.3kW/panel \
     60kg/kW \
@@ -36,7 +38,7 @@ This project focuses on Large-Scale PV Systems. The data about these PV systems 
 #### Recycling Sites
 This project uses 9 different recycling sites that are collected from individual research. The list is provided in `recycling_sites.csv`.
 #### Suppliers
-
+This project uses several suppliers that would buy material from recycled PV waste. The suppliers divided into 6 categories based on materials they supply: Aluminium, Copper, Glass, Plastic/EVA, Silicon, and Silver. The list is obtained from individual research.
 
 Note: this project allows user to add more power stations, recycling sites, and/or suppliers places, so the list from data collection step are not fixed.
 
@@ -68,6 +70,7 @@ To get the calculator up and running on their local machine, user needs to follo
 3. User can add other aspects that can be considered in transportation costs other than what is used in this project, e.g., truck maintenance costs.
 4. Note that not all suppliers would willing to buy extracted materials from recycle solar panel. Hence, user can filter out and adjust suppliers list to make sure that the list only includes suppliers that are willing to buy the recoverable materials from solar PV waste.
 5. The calculator is provided in Jupyter Notebook file with less interactive UI/UX and the raw code is still visible to user. This can be improved by creating another user interface for the calculator so user can use the calculator without looking at the raw code.
+6. The database for this project might not be accurate, especially regarding recycling sites and suppliers, because it based on individual research. User can improve the database by editing the list with more accurate data.
 
 ## References
 [^1]: Clean Energy Council. (2025). [Recycling Wind Turbines, Solar Panels and Batteries: Fact Sheet](https://cleanenergycouncil.org.au/for-consumers/fact-sheets/recycling-get-the-facts/recyling-wind-turbines-solar-panels-batteries).
