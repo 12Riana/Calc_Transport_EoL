@@ -38,7 +38,7 @@ This project focuses on Large-Scale PV Systems. The data about these PV systems 
 #### Recycling Sites
 This project uses 9 different recycling sites that are collected from individual research. The list is provided in `recycling_sites.csv`.
 #### Suppliers
-This project uses several suppliers that would buy material from recycled PV waste. The suppliers divided into 6 categories based on materials they supply: Aluminium, Copper, Glass, Plastic/EVA, Silicon, and Silver. The list is obtained from individual research.
+This project uses several suppliers that would buy materials from recycled PV waste. The suppliers divided into 6 categories based on materials they supply: Aluminium, Copper, Glass, Plastic/EVA, Silicon, and Silver. The list is obtained from individual research and provided in `suppliers.xlsx`.
 
 Note: this project allows user to add more power stations, recycling sites, and/or suppliers places, so the list from data collection step are not fixed.
 
@@ -65,12 +65,10 @@ To get the calculator up and running on their local machine, user needs to follo
 4. Run the notebook cells sequentially. When prompted, input the required parameters to process the calculations.
 
 ## Future Work
-1. User may add more power stations, recycling hub, or suppliers that have not listed in this project in order to provide more options of places and make this project more reliable for real life scenario.
-2. This project still apply many assumptions in order to simplify the cost calculation. User can improve the work in this project by removing some assumptions if they have valid data to substitute the number provided in the assumptions.
+1. The dataset for this project is not complete and might not be accurate, especially regarding recycling sites and suppliers, because it based on individual research. User can improve the dataset by editing the list with more accurate data.
+2. This project still apply many assumptions in order to simplify the cost calculation. User can improve this project by removing some assumptions if they have valid data to substitute the number provided in the assumptions.
 3. User can add other aspects that can be considered in transportation costs other than what is used in this project, e.g., truck maintenance costs.
-4. Note that not all suppliers would willing to buy extracted materials from recycle solar panel. Hence, user can filter out and adjust suppliers list to make sure that the list only includes suppliers that are willing to buy the recoverable materials from solar PV waste.
-5. The calculator is provided in Jupyter Notebook file with less interactive UI/UX and the raw code is still visible to user. This can be improved by creating another user interface for the calculator so user can use the calculator without looking at the raw code.
-6. The database for this project might not be accurate, especially regarding recycling sites and suppliers, because it based on individual research. User can improve the database by editing the list with more accurate data.
+4. The calculator is provided in Jupyter Notebook file with less interactive UI/UX and the raw code is still visible to user. This can be improved by creating another user interface for the calculator so user can use the calculator without looking at the raw code.
 
 ## References
 [^1]: Clean Energy Council. (2025). [Recycling Wind Turbines, Solar Panels and Batteries: Fact Sheet](https://cleanenergycouncil.org.au/for-consumers/fact-sheets/recycling-get-the-facts/recyling-wind-turbines-solar-panels-batteries).
