@@ -54,7 +54,7 @@ For conventional recycling, the calculator works as the following.
       <sub><b>Figure 1:</b> Optimal Route from Power Station to CLosest Recycling Site.</sub>
     </td>
     <td align="center">
-      <img src="figure/OSRM_rs_ss.png" alt="Figure 2" width="400px" />
+      <img src="figure/OSRM_rs_ss.png" alt="Figure 2" width="350px" />
       <br />
       <sub><b>Figure 2:</b> Optimal Route from Recycling Site to Closest Suppliers.</sub>
     </td>
