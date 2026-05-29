@@ -66,7 +66,7 @@ For conventional recycling, the calculator works as the following.
 
 For mobile recycling, the calculator works as the following.
 1. Find and estimate the closest suppliers for each material from the power station because recycling process is done onsite (at the power station).
-2. Calculate the transportation and labour cost for recycling onsite. The path for mobile recycling is parking site -> power stations -> suppliers -> parking site.
+2. Calculate the transportation cost for recycling onsite. The path for mobile recycling is parking site -> power stations -> suppliers -> parking site.
 3. Calculate the approximate worth of panel waste and the profit in AU$.
 
 ## Output
