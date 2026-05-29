@@ -54,12 +54,13 @@ For conventional recycling, the calculator works as the following.
       <sub><b>Figure 1:</b> Optimal Route from Power Station to CLosest Recycling Site.</sub>
     </td>
     <td align="center">
-      <img src="figure/OSRM_rs_ss.png" alt="Figure 2" width="300px" />
+      <img src="figure/OSRM_rs_ss.png" alt="Figure 2" width="400px" />
       <br />
       <sub><b>Figure 2:</b> Optimal Route from Recycling Site to Closest Suppliers.</sub>
     </td>
   </tr>
 </table>
+
 3. Calculate the transportation cost (fuel and labour cost) on the path recycling site -> power stations -> recycling site -> suppliers -> recycling site.
 4. Calculate the approximate worth of panel waste and the profit in AU$.
 
