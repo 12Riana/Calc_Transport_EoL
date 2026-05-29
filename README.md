@@ -44,12 +44,29 @@ Note: this project allows user to add more power stations, recycling sites, and/
 
 ### Calculation
 For conventional recycling, the calculator works as the following.
-1. Calculate the maximum capacity (number of panels) that one truck can carry in one go.
-2. Calculate the number of trucks needed to carry EoL based on how many kW/kg/number of panels inputted by user.
-3. Calculate the fuel cost of driving on path recycling site -> power stations -> recycling site.
-4. Calculate the approximate worth of panel waste in AU$.
+1. Calculate the number of trucks needed to carry EoL based on how many kW/kg/number of panels inputted by user.
+2. Find and estimate distance of the closest recycling site from the power station, and the closest supplier of each material from the recycling site. This project use Open Source Routing Machine (OSRM) in order to find the optimal route and driving distance to the closest place. The following images show the example of OSRM application in this project.
+<table>
+  <tr>
+    <td align="center">
+      <img src="figure/OSRM_ps_rs.png" alt="Figure 1" width="400px" />
+      <br />
+      <sub><b>Figure 1:</b> Optimal Route from Power Station to CLosest Recycling Site.</sub>
+    </td>
+    <td align="center">
+      <img src="figure/OSRM_rs_ss.png" alt="Figure 2" width="300px" />
+      <br />
+      <sub><b>Figure 2:</b> Optimal Route from Recycling Site to Closest Suppliers.</sub>
+    </td>
+  </tr>
+</table>
+3. Calculate the transportation cost (fuel and labour cost) on the path recycling site -> power stations -> recycling site -> suppliers -> recycling site.
+4. Calculate the approximate worth of panel waste and the profit in AU$.
 
 For mobile recycling, the calculator works as the following.
+1. Find and estimate the closest suppliers for each material from the power station because recycling process is done onsite (at the power station).
+2. Calculate the transportation and labour cost for recycling onsite. The path for mobile recycling is parking site -> power stations -> suppliers -> parking site.
+3. Calculate the approximate worth of panel waste and the profit in AU$.
 
 ## Output
 One Jupyter Notebook file named `code.ipynb` containing code for estimating transportation costs of Conventional and Mobile Recycling of Solar EoL modules to suppliers of each recoverable material in Australia. This file serves as the calculator, where user can input information while running the code, and eventually will receive the calculation result.
