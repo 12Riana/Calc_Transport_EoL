@@ -9,7 +9,7 @@
 ## Project Goals
 - The primary objective of this project is to provide a clear and accessible estimator (calculator) that policymakers, recycling companies, and solar farm owners can easily use to estimate the total transportation cost of moving end-of-life (EoL) solar panels from solar farms to the nearest recycling hub, and eventually transported to suppliers for each recovered material.
 - This project also estimate the total value of the materials recovered from the panels. This helps determine exactly how many panels need to be recycled in a single trip to cover the shipping costs and start making a profit.
-- Furthermore, this project also shows the difference in transportation costs between Conventional recycling (shipping panels to a recycling hub) and Mobile recycling (bringing the recycling equipment directly to the solar farm).
+- In the future, this project might be developed to show the difference in transportation costs between Conventional recycling (shipping panels to a recycling hub) and Mobile recycling (bringing the recycling equipment directly to the solar farm).
 
 ## Methodology
 
@@ -69,24 +69,48 @@ For mobile recycling, the calculator works as the following.
 2. Calculate the transportation cost for recycling onsite. The path for mobile recycling is parking site -> power stations -> suppliers -> parking site.
 3. Calculate the approximate worth of panel waste and the profit in AU$.
 
+However, due to ongoing research about mobile recycle, this project still not be able to accurately estimate the transportation cost of mobile recycle.
+
 ## Output
-One Jupyter Notebook file named `code.ipynb` containing code for estimating transportation costs of Conventional and Mobile Recycling of Solar EoL modules to suppliers of each recoverable material in Australia. This file serves as the calculator, where user can input information while running the code, and eventually will receive the calculation result.
+This github repository provides:
+- One Jupyter Notebook file named `code.ipynb` containing code for estimating transportation costs of Conventional and Mobile Recycling of Solar EoL modules to suppliers of each recoverable material in Australia. 
+- One html file named `calculator.html`, which serves as the interactive calculator, where user can input information, and eventually will receive the calculation result. Note that this file can only be ran in localhost.
 
 ## Usage
-To get the calculator up and running on their local machine, user needs to follow the following steps.
+To access the raw code for the calculator in the `code.ipynb`, user needs to follow the following steps.
 1. User must have Jupyter Notebook installed on their device.
-2. Download the project files by running the following command in terminal.
+2. Open terminal or command prompt and clone this github repository by running:
 ```bash
    git clone https://github.com/12Riana/Calc_Transport_EoL.git
 ```
 3. Launch Jupyter Notebook and open the `code.ipynb` file.
 4. Run the notebook cells sequentially. When prompted, input the required parameters to process the calculations.
 
+To get the calculator up and running on their local machine, user needs to follow the following steps.
+1. Open terminal or command prompt and clone this repository by running:
+```bash
+   git clone https://github.com/12Riana/Calc_Transport_EoL.git
+```
+  (Note: do not do this step if you have done it previously).
+2. Navigate into the project folder using your terminal:
+```bash
+   cd Calc_Transport_EoL
+```
+3. Start a local web server using Python:
+```bash
+   python -m http.server
+```
+  (Note: If the above command doesn't work, try python3 -m http.server instead).
+4. Leave the terminal running, open one web browser (Chrome, Safari, Edge, etc.), and go to the following URL:
+```bash
+   http://localhost:8000/calculator.html
+```
+4. The calculator is ready to use! Input the necessary information (unit, value, and power stations), then it will output the estimated transportation cost and profit for conventional recycling method. User can also add power stations, recycling sites, or suppliers if they have data outside what have been included in the dataset used in this project.
+
 ## Future Work
 1. The dataset for this project is not complete and might not be accurate, especially regarding recycling sites and suppliers, because it based on individual research. User can improve the dataset by editing the list with more accurate data.
 2. This project still apply many assumptions in order to simplify the cost calculation. User can improve this project by removing some assumptions if they have valid data to substitute the number provided in the assumptions.
 3. User can add other aspects that can be considered in transportation costs other than what is used in this project, e.g., truck maintenance costs.
-4. The calculator is provided in Jupyter Notebook file with less interactive UI/UX and the raw code is still visible to user. This can be improved by creating another user interface for the calculator so user can use the calculator without looking at the raw code.
 
 ## References
 [^1]: Clean Energy Council. (2025). [Recycling Wind Turbines, Solar Panels and Batteries: Fact Sheet](https://cleanenergycouncil.org.au/for-consumers/fact-sheets/recycling-get-the-facts/recyling-wind-turbines-solar-panels-batteries).
