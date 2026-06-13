@@ -100,12 +100,13 @@ To get the calculator up and running on their local machine, user needs to follo
 ```bash
    python -m http.server
 ```
-  (Note: If the above command doesn't work, try python3 -m http.server instead).
+  (Note: If the above command doesn't work, try `python3 -m http.server` instead).
+
 4. Leave the terminal running, open one web browser (Chrome, Safari, Edge, etc.), and go to the following URL:
 ```bash
    http://localhost:8000/calculator.html
 ```
-4. The calculator is ready to use! Input the necessary information (unit, value, and power stations), then it will output the estimated transportation cost and profit for conventional recycling method. User can also add power stations, recycling sites, or suppliers if they have data outside what have been included in the dataset used in this project.
+5. The calculator is ready to use! Input the necessary information (unit, value, and power stations), then it will output the estimated transportation cost and profit for conventional recycling method. User can also add power stations, recycling sites, or suppliers if they have data outside what have been included in the dataset used in this project.
 
 ## Future Work
 1. The dataset for this project is not complete and might not be accurate, especially regarding recycling sites and suppliers, because it based on individual research. User can improve the dataset by editing the list with more accurate data.
