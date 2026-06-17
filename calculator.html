@@ -11,7 +11,7 @@
         body { background-color: #f8f9fa; padding-bottom: 50px; }
         .map-container { height: 400px; width: 100%; border-radius: 8px; border: 1px solid #ddd; }
         .result-box { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }
-        .hidden { display: none; }
+        .hidden { display: none !important; }
         .custom-form { background-color: #e9ecef; padding: 15px; border-radius: 8px; margin-bottom: 15px; height: 100%; }
         .custom-marker {
             display: flex;
@@ -27,11 +27,27 @@
         .marker-green { background-color: #28a745; }
         .marker-orange { background-color: #fd7e14; }
         .marker-red { background-color: #dc3545; }
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.5); z-index: 2000; 
+            align-items: center; justify-content: center;
+        }
+        .modal-overlay:not(.hidden) { display: flex; }
     </style>
 </head>
 <body>
 
-<div class="container mt-4">
+<div class="container mt-4 position-relative">
+    
+    <div class="position-absolute end-0 top-0 mt-1 me-2" style="z-index: 1050;">
+        <i class="fa-solid fa-gear fs-4 text-secondary" style="cursor: pointer;" onclick="document.getElementById('settingsMenu').classList.toggle('hidden')"></i>
+        <div id="settingsMenu" class="bg-white border rounded shadow-sm p-2 hidden" style="position: absolute; right: 0; top: 30px; width: max-content;">
+            <a href="#" class="text-decoration-none text-dark" onclick="openSettingsForm(); return false;">
+                <i class="fa-solid fa-sliders me-2"></i>Adjust Assumption Values
+            </a>
+        </div>
+    </div>
+
     <h2 class="mb-4 text-center">Solar EoL Transportation Cost Estimator</h2>
     
     <div id="dataLoadingAlert" class="alert alert-info text-center">
@@ -196,6 +212,36 @@
     </div>
 </div>
 
+<div id="settingsModal" class="modal-overlay hidden">
+    <div class="bg-white p-4 rounded shadow-lg" style="width: 400px; max-width: 90%;">
+        <h5 class="mb-3"><i class="fa-solid fa-sliders text-secondary me-2"></i>Adjust Assumption Values</h5>
+        <div class="mb-2">
+            <label class="form-label small mb-1">Capacity (kW) per panel</label>
+            <input type="number" id="setPanelKw" class="form-control form-control-sm" step="0.001">
+        </div>
+        <div class="mb-2">
+            <label class="form-label small mb-1">Weight (kg) per panel</label>
+            <input type="number" id="setPanelKg" class="form-control form-control-sm" step="0.1">
+        </div>
+        <div class="mb-2">
+            <label class="form-label small mb-1">Weight (kg) per kW capacity</label>
+            <input type="number" id="setKgPerKw" class="form-control form-control-sm" step="0.1">
+        </div>
+        <div class="mb-2">
+            <label class="form-label small mb-1">Worth of Panel Power ($/kW)</label>
+            <input type="number" id="setWorthKw" class="form-control form-control-sm" step="0.01">
+        </div>
+        <div class="mb-3">
+            <label class="form-label small mb-1">Worth of panel waste ($/kg)</label>
+            <input type="number" id="setWorthKg" class="form-control form-control-sm" step="0.01">
+        </div>
+        <div class="d-flex justify-content-end gap-2">
+            <button class="btn btn-secondary btn-sm" onclick="closeSettingsForm()">Cancel</button>
+            <button class="btn btn-primary btn-sm" onclick="saveSettings()">Save Configuration</button>
+        </div>
+    </div>
+</div>
+
 <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
 
 <script>
@@ -209,9 +255,14 @@
     let map2Instance = null;
     let map3Instance = null;
 
-    // Constants
-    const PANEL_KW = 0.300;
-    const PANEL_KG = 18.0;
+    // Adjustable Assumption Variables (Previously Constants)
+    let PANEL_KW = 0.300;
+    let PANEL_KG = 18.0;
+    let KG_PER_KW = 60.0; // Standard fallback (18/0.3)
+    let WORTH_PER_KW = 10.0;
+    let WORTH_PER_KG = 0.2;
+
+    // Fixed Constants
     const TRUCK_LIMIT = 388; // 7000kg limit
     const DIESEL_PRICE = 2.25;
     const FUEL_EFF = 0.17; 
@@ -230,6 +281,57 @@
     const iconRS = L.divIcon({ className: 'custom-marker marker-green', html: '<i class="fa-solid fa-recycle"></i>', iconSize: [30, 30], iconAnchor: [15, 15] });
     const iconSupp = L.divIcon({ className: 'custom-marker marker-orange', html: '<i class="fa-solid fa-building"></i>', iconSize: [30, 30], iconAnchor: [15, 15] });
     const iconMobileOrigin = L.divIcon({ className: 'custom-marker marker-red', html: '<i class="fa-solid fa-bolt"></i>', iconSize: [30, 30], iconAnchor: [15, 15] });
+
+    // --- Settings UI Functions ---
+    function openSettingsForm() {
+        document.getElementById('settingsMenu').classList.add('hidden');
+        document.getElementById('settingsModal').classList.remove('hidden');
+        
+        // Update placeholders to show current settings dynamically
+        document.getElementById('setPanelKw').placeholder = `Current: ${PANEL_KW}`;
+        document.getElementById('setPanelKg').placeholder = `Current: ${PANEL_KG}`;
+        document.getElementById('setKgPerKw').placeholder = `Current: ${KG_PER_KW}`;
+        document.getElementById('setWorthKw').placeholder = `Current: ${WORTH_PER_KW}`;
+        document.getElementById('setWorthKg').placeholder = `Current: ${WORTH_PER_KG}`;
+    }
+
+    function closeSettingsForm() {
+        document.getElementById('settingsModal').classList.add('hidden');
+    }
+
+    function saveSettings() {
+        const kwVal = document.getElementById("setPanelKw").value;
+        const kgVal = document.getElementById("setPanelKg").value;
+        const kgKwVal = document.getElementById("setKgPerKw").value;
+        const worthKwVal = document.getElementById("setWorthKw").value;
+        const worthKgVal = document.getElementById("setWorthKg").value;
+
+        // Only overwrite values if the user actually typed something in that specific box
+        if (kwVal !== "") PANEL_KW = parseFloat(kwVal);
+        if (kgVal !== "") PANEL_KG = parseFloat(kgVal);
+        if (kgKwVal !== "") {
+            KG_PER_KW = parseFloat(kgKwVal);
+        } else if (kwVal !== "" || kgVal !== "") {
+            KG_PER_KW = PANEL_KG / PANEL_KW; // Auto-adjust ratio if base specs changed but explicit ratio wasn't provided
+        }
+        
+        if (worthKwVal !== "") WORTH_PER_KW = parseFloat(worthKwVal);
+        if (worthKgVal !== "") WORTH_PER_KG = parseFloat(worthKgVal);
+
+        closeSettingsForm();
+
+        // Clear input boxes for next open
+        document.getElementById("setPanelKw").value = "";
+        document.getElementById("setPanelKg").value = "";
+        document.getElementById("setKgPerKw").value = "";
+        document.getElementById("setWorthKw").value = "";
+        document.getElementById("setWorthKg").value = "";
+
+        // Immediately recalculate if there is already an output on the screen
+        if (!document.getElementById("resultsArea").classList.contains("hidden")) {
+            calculateCosts();
+        }
+    }
 
     // Load Data
     window.onload = async function() {
@@ -345,14 +447,20 @@
         document.getElementById("loading").classList.remove("hidden");
         document.getElementById("resultsArea").classList.add("hidden");
 
-        // 1. Conversions
+        // 1. Conversions Using Dynamic Assumptions
         let total_kw, total_kg, total_panels;
         if (unit === 'kw') {
-            total_kw = val; total_panels = total_kw / PANEL_KW; total_kg = total_panels * PANEL_KG;
+            total_kw = val; 
+            total_panels = total_kw / PANEL_KW; 
+            total_kg = total_kw * KG_PER_KW;
         } else if (unit === 'kg') {
-            total_kg = val; total_panels = total_kg / PANEL_KG; total_kw = total_panels * PANEL_KW;
+            total_kg = val; 
+            total_panels = total_kg / PANEL_KG; 
+            total_kw = total_kg / KG_PER_KW;
         } else {
-            total_panels = val; total_kw = total_panels * PANEL_KW; total_kg = total_panels * PANEL_KG;
+            total_panels = val; 
+            total_kw = total_panels * PANEL_KW; 
+            total_kg = total_panels * PANEL_KG;
         }
         const trucksNeeded = Math.ceil(total_panels / TRUCK_LIMIT);
 
@@ -455,7 +563,10 @@
 
         // 4. Financial Calculation (Conventional)
         let total_project_cost = total_cost_1 + total_cost_2;
-        let panel_worth = total_kg * 0.2;
+        
+        // Dynamically applying both worth assumptions based on setup menu inputs
+        let panel_worth = (total_kg * WORTH_PER_KG);
+        
         let profit = panel_worth - total_project_cost;
 
         document.getElementById("totalCostText").innerText = `Total Route Cost: $${total_project_cost.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
