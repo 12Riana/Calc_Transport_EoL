@@ -60,7 +60,7 @@
             <div class="card-body bg-white rounded">
                 <h5 class="card-title text-center mb-4">Estimator Inputs</h5>
                 <div class="row align-items-end g-3">
-                    <div class="col-md-3">
+                    <div class="col-md-2">
                         <label class="form-label fw-bold">Select Unit:</label>
                         <select id="unitSelect" class="form-select">
                             <option value="kw">Kilowatts (kW)</option>
@@ -69,9 +69,14 @@
                         </select>
                     </div>
                     
-                    <div class="col-md-3">
-                        <label class="form-label fw-bold">Enter Value:</label>
-                        <input type="number" id="unitValue" class="form-control" placeholder="e.g., 1066" value="1066">
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold">Min Value:</label>
+                        <input type="number" id="unitValueMin" class="form-control" placeholder="Min" value="1000">
+                    </div>
+
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold">Max Value:</label>
+                        <input type="number" id="unitValueMax" class="form-control" placeholder="Max" value="1066">
                     </div>
                     
                     <div class="col-md-4">
@@ -81,7 +86,7 @@
                     </div>
 
                     <div class="col-md-2">
-                        <button class="btn btn-primary w-100" onclick="calculateCosts()">Calculate Route & Costs</button>
+                        <button class="btn btn-primary w-100" onclick="calculateCosts()">Calculate Costs</button>
                     </div>
                 </div>
                 
@@ -100,7 +105,8 @@
 
             <div class="row">
                 <div class="col-lg-6 border-end">
-                    <h3 class="text-center mb-3 fw-bold text-secondary">Conventional Recycling</h3>
+                    <h3 class="text-center mb-2 fw-bold text-secondary">Conventional Recycling</h3>
+                    <p id="convTrucksText" class="text-center fs-5 fw-bold text-primary mb-4"></p>
                     
                     <div class="result-box">
                         <h5 class="text-primary">Path 1: Power Station → Closest Recycling Site</h5>
@@ -114,31 +120,42 @@
                         <div id="map2" class="map-container mb-3"></div>
                     </div>
 
-                    <div class="result-box bg-success text-white">
-                        <h4 class="mb-3">Financial Estimation</h4>
-                        <h5 id="totalCostText"></h5>
-                        <h5 id="worthText"></h5>
-                        <hr>
-                        <h3 id="profitText" class="mt-3 fw-bold"></h3>
+                    <div class="result-box bg-white">
+                        <h4 class="mb-3 text-success border-bottom pb-2">Total Estimated Cost</h4>
+                        <h4 id="totalCostConvText" class="fw-bold text-dark text-center"></h4>
                     </div>
                 </div>
 
                 <div class="col-lg-6">
-                    <h3 class="text-center mb-3 fw-bold text-secondary">Mobile Recycling</h3>
+                    <h3 class="text-center mb-4 fw-bold text-secondary">Mobile Recycling</h3>
                     
                     <div class="result-box">
                         <h5 class="text-primary">Path: Power Station → Material Suppliers</h5>
-                        <p class="fs-6 mb-3">Showing direct routes from the selected Power Station to the closest material suppliers for processing on-site.</p>
+                        <div id="mobilePathText" class="fs-6"></div>
                         <div id="map3" class="map-container mb-3"></div>
-                        <div class="alert alert-warning text-center mb-0">
-                            <strong>Note:</strong> The calculation for mobile recycling will be updated soon after gathering more information and research about mobile recycling.
-                        </div>
+                    </div>
+
+                    <div class="result-box bg-white">
+                        <h4 class="mb-3 text-success border-bottom pb-2">Total Estimated Cost</h4>
+                        <h6 class="text-secondary">On-Site Processing: <span id="mobileProcessingCost" class="text-dark fw-bold"></span></h6>
+                        <h6 class="text-secondary">Material Transport: <span id="mobileTransportCost" class="text-dark fw-bold"></span></h6>
+                        <hr>
+                        <h4 id="totalCostMobileText" class="fw-bold text-dark text-center"></h4>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mt-3 mb-4">
+                <div class="col-12">
+                    <div class="result-box bg-success text-white text-center shadow">
+                        <h4 class="mb-2">Estimation Worth of EoL Waste</h4>
+                        <h3 id="worthText" class="fw-bold mb-0"></h3>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="mt-5">
+        <div class="mt-4">
             <h4 class="mb-4 text-center border-bottom pb-2 text-secondary">Want to add places?</h4>
             <div class="row g-3">
                 <div class="col-md-4">
@@ -255,10 +272,10 @@
     let map2Instance = null;
     let map3Instance = null;
 
-    // Adjustable Assumption Variables (Previously Constants)
+    // Adjustable Assumption Variables
     let PANEL_KW = 0.300;
     let PANEL_KG = 18.0;
-    let KG_PER_KW = 60.0; // Standard fallback (18/0.3)
+    let KG_PER_KW = 60.0; 
     let WORTH_PER_KW = 10.0;
     let WORTH_PER_KG = 0.2;
 
@@ -276,18 +293,25 @@
         'Silicon': 0.025, 'Copper': 0.008, 'Silver': 0.0003
     };
 
+    // Mobile specific assumptions
+    const MOBILE_CAPEX = 1000000;
+    const MOBILE_LIFESPAN_YRS = 10;
+    const DAYS_OPERATED_YR = 300;
+    const PROCESSING_CAPACITY_KG_DAY = 3000;
+    const WORKING_HRS_DAY = 8;
+    const MOBILE_SETUP_HRS = 6;
+    const MOBILE_TEARDOWN_HRS = 4;
+
     // Icons
     const iconPS = L.divIcon({ className: 'custom-marker marker-blue', html: '<i class="fa-solid fa-bolt"></i>', iconSize: [30, 30], iconAnchor: [15, 15] });
     const iconRS = L.divIcon({ className: 'custom-marker marker-green', html: '<i class="fa-solid fa-recycle"></i>', iconSize: [30, 30], iconAnchor: [15, 15] });
     const iconSupp = L.divIcon({ className: 'custom-marker marker-orange', html: '<i class="fa-solid fa-building"></i>', iconSize: [30, 30], iconAnchor: [15, 15] });
     const iconMobileOrigin = L.divIcon({ className: 'custom-marker marker-red', html: '<i class="fa-solid fa-bolt"></i>', iconSize: [30, 30], iconAnchor: [15, 15] });
 
-    // --- Settings UI Functions ---
     function openSettingsForm() {
         document.getElementById('settingsMenu').classList.add('hidden');
         document.getElementById('settingsModal').classList.remove('hidden');
         
-        // Update placeholders to show current settings dynamically
         document.getElementById('setPanelKw').placeholder = `Current: ${PANEL_KW}`;
         document.getElementById('setPanelKg').placeholder = `Current: ${PANEL_KG}`;
         document.getElementById('setKgPerKw').placeholder = `Current: ${KG_PER_KW}`;
@@ -306,13 +330,12 @@
         const worthKwVal = document.getElementById("setWorthKw").value;
         const worthKgVal = document.getElementById("setWorthKg").value;
 
-        // Only overwrite values if the user actually typed something in that specific box
         if (kwVal !== "") PANEL_KW = parseFloat(kwVal);
         if (kgVal !== "") PANEL_KG = parseFloat(kgVal);
         if (kgKwVal !== "") {
             KG_PER_KW = parseFloat(kgKwVal);
         } else if (kwVal !== "" || kgVal !== "") {
-            KG_PER_KW = PANEL_KG / PANEL_KW; // Auto-adjust ratio if base specs changed but explicit ratio wasn't provided
+            KG_PER_KW = PANEL_KG / PANEL_KW; 
         }
         
         if (worthKwVal !== "") WORTH_PER_KW = parseFloat(worthKwVal);
@@ -320,31 +343,29 @@
 
         closeSettingsForm();
 
-        // Clear input boxes for next open
         document.getElementById("setPanelKw").value = "";
         document.getElementById("setPanelKg").value = "";
         document.getElementById("setKgPerKw").value = "";
         document.getElementById("setWorthKw").value = "";
         document.getElementById("setWorthKg").value = "";
 
-        // Immediately recalculate if there is already an output on the screen
-        if (!document.getElementById("resultsArea").classList.contains("hidden")) {
-            calculateCosts();
-        }
+        if (!document.getElementById("resultsArea").classList.contains("hidden")) calculateCosts();
     }
 
-    // Load Data
     window.onload = async function() {
         try {
             const [psRes, rsRes, supRes] = await Promise.all([
-                fetch('power_stations.json'),
-                fetch('recycling_sites.json'),
-                fetch('suppliers.json')
+                fetch('power_stations.json'), fetch('recycling_sites.json'), fetch('suppliers.json')
             ]);
 
             if(!psRes.ok || !rsRes.ok || !supRes.ok) throw new Error("Missing JSON files.");
 
-            powerStations = await psRes.json();
+            let rawPowerStations = await psRes.json();
+            // Filter utility threshold logic (>= 1000 kW) dynamically verifying properties available
+            powerStations = rawPowerStations.filter(ps => {
+                let size = ps["Size (kW)"] !== undefined ? ps["Size (kW)"] : ps["Capacity"];
+                return size === undefined || size >= 1000.0;
+            });
             recyclingSites = await rsRes.json();
             suppliers = await supRes.json();
 
@@ -356,7 +377,6 @@
         } catch (error) {
             document.getElementById("dataLoadingAlert").className = "alert alert-danger text-center";
             document.getElementById("dataLoadingAlert").innerHTML = "<strong>Error:</strong> Could not load data. Ensure local server is running and JSON files are present.";
-            console.error(error);
         }
     };
 
@@ -370,7 +390,6 @@
         });
     }
 
-    // --- Add Custom Entities ---
     function addPowerStation() {
         const name = document.getElementById("newPSName").value.trim();
         const lat = parseFloat(document.getElementById("newPSLat").value);
@@ -378,12 +397,8 @@
         if (!name || isNaN(lat) || isNaN(lon)) { alert("Please fill in all Power Station fields."); return; }
         powerStations.push({ Name: name, Latitude: lat, Longitude: lon }); 
         updatePowerStationDropdown(); 
-        document.getElementById("newPSName").value = '';
-        document.getElementById("newPSLat").value = '';
-        document.getElementById("newPSLon").value = '';
-        const msg = document.getElementById("psAddedMsg");
-        msg.classList.remove("hidden");
-        setTimeout(() => msg.classList.add("hidden"), 3000);
+        document.getElementById("newPSName").value = ''; document.getElementById("newPSLat").value = ''; document.getElementById("newPSLon").value = '';
+        const msg = document.getElementById("psAddedMsg"); msg.classList.remove("hidden"); setTimeout(() => msg.classList.add("hidden"), 3000);
     }
 
     function addRecyclingSite() {
@@ -392,12 +407,8 @@
         const lon = parseFloat(document.getElementById("newRSLon").value);
         if (!name || isNaN(lat) || isNaN(lon)) { alert("Please fill in all Recycling Site fields."); return; }
         recyclingSites.push({ Name: name, Latitude: lat, Longitude: lon }); 
-        document.getElementById("newRSName").value = '';
-        document.getElementById("newRSLat").value = '';
-        document.getElementById("newRSLon").value = '';
-        const msg = document.getElementById("rsAddedMsg");
-        msg.classList.remove("hidden");
-        setTimeout(() => msg.classList.add("hidden"), 3000);
+        document.getElementById("newRSName").value = ''; document.getElementById("newRSLat").value = ''; document.getElementById("newRSLon").value = '';
+        const msg = document.getElementById("rsAddedMsg"); msg.classList.remove("hidden"); setTimeout(() => msg.classList.add("hidden"), 3000);
     }
 
     function addSupplier() {
@@ -407,75 +418,77 @@
         const lon = parseFloat(document.getElementById("newSuppLon").value);
         if (!name || !material || isNaN(lat) || isNaN(lon)) { alert("Please fill in all Supplier fields."); return; }
         suppliers.push({ Name: name, Material: material, Latitude: lat, Longitude: lon }); 
-        document.getElementById("newSuppName").value = '';
-        document.getElementById("newSuppMat").selectedIndex = 0;
-        document.getElementById("newSuppLat").value = '';
-        document.getElementById("newSuppLon").value = '';
-        const msg = document.getElementById("supplierAddedMsg");
-        msg.classList.remove("hidden");
-        setTimeout(() => msg.classList.add("hidden"), 3000);
+        document.getElementById("newSuppName").value = ''; document.getElementById("newSuppMat").selectedIndex = 0;
+        document.getElementById("newSuppLat").value = ''; document.getElementById("newSuppLon").value = '';
+        const msg = document.getElementById("supplierAddedMsg"); msg.classList.remove("hidden"); setTimeout(() => msg.classList.add("hidden"), 3000);
     }
 
-    // --- Routing API ---
     async function getOSRMData(lat1, lon1, lat2, lon2) {
         const url = `https://router.project-osrm.org/route/v1/driving/${lon1},${lat1};${lon2},${lat2}?overview=full&geometries=geojson`;
         try {
             const response = await fetch(url);
             const data = await response.json();
-            if (data.code === 'Ok') {
-                return { distance: data.routes[0].distance / 1000, geometry: data.routes[0].geometry };
-            }
+            if (data.code === 'Ok') return { distance: data.routes[0].distance / 1000, geometry: data.routes[0].geometry };
         } catch(e) { console.error("OSRM Error", e); }
         return { distance: Infinity, geometry: null };
     }
 
-    // --- Core Calculator ---
+    function formatRangeOutput(min, max, type) {
+        let fMin = min.toLocaleString(undefined, {minimumFractionDigits: type === 'int'?0:2, maximumFractionDigits: type === 'int'?0:2});
+        let fMax = max.toLocaleString(undefined, {minimumFractionDigits: type === 'int'?0:2, maximumFractionDigits: type === 'int'?0:2});
+        return min === max ? fMin : `${fMin} - ${fMax}`;
+    }
+
     async function calculateCosts() {
         const selectedName = document.getElementById("powerStationInput").value;
         const ps = powerStations.find(s => s.Name === selectedName); 
         
-        if (!ps) {
-            alert("Please select a valid Power Station from the dropdown list.");
-            return;
-        }
+        if (!ps) { alert("Please select a valid Power Station from the dropdown list."); return; }
 
-        const val = parseFloat(document.getElementById("unitValue").value);
+        const valMin = parseFloat(document.getElementById("unitValueMin").value);
+        const valMax = parseFloat(document.getElementById("unitValueMax").value);
         const unit = document.getElementById("unitSelect").value;
 
-        if(!val || val <= 0) { alert("Please enter a valid number for the unit."); return; }
+        if(!valMin || !valMax || valMin <= 0 || valMax <= 0) { alert("Please enter valid positive values for the range."); return; }
+
+        let vMin = Math.min(valMin, valMax);
+        let vMax = Math.max(valMin, valMax);
 
         document.getElementById("loading").classList.remove("hidden");
         document.getElementById("resultsArea").classList.add("hidden");
 
-        // 1. Conversions Using Dynamic Assumptions
-        let total_kw, total_kg, total_panels;
-        if (unit === 'kw') {
-            total_kw = val; 
-            total_panels = total_kw / PANEL_KW; 
-            total_kg = total_kw * KG_PER_KW;
-        } else if (unit === 'kg') {
-            total_kg = val; 
-            total_panels = total_kg / PANEL_KG; 
-            total_kw = total_kg / KG_PER_KW;
-        } else {
-            total_panels = val; 
-            total_kw = total_panels * PANEL_KW; 
-            total_kg = total_panels * PANEL_KG;
-        }
-        const trucksNeeded = Math.ceil(total_panels / TRUCK_LIMIT);
+        let total_kw_min, total_kw_max, total_kg_min, total_kg_max, total_panels_min, total_panels_max;
 
+        if (unit === 'kw') {
+            total_kw_min = vMin; total_kw_max = vMax;
+            total_panels_min = total_kw_min / PANEL_KW; total_panels_max = total_kw_max / PANEL_KW;
+            total_kg_min = total_kw_min * KG_PER_KW; total_kg_max = total_kw_max * KG_PER_KW;
+        } else if (unit === 'kg') {
+            total_kg_min = vMin; total_kg_max = vMax;
+            total_panels_min = total_kg_min / PANEL_KG; total_panels_max = total_kg_max / PANEL_KG;
+            total_kw_min = total_kg_min / KG_PER_KW; total_kw_max = total_kg_max / KG_PER_KW;
+        } else {
+            total_panels_min = vMin; total_panels_max = vMax;
+            total_kw_min = total_panels_min * PANEL_KW; total_kw_max = total_panels_max * PANEL_KW;
+            total_kg_min = total_panels_min * PANEL_KG; total_kg_max = total_panels_max * PANEL_KG;
+        }
+
+        const trucks_needed_min = Math.ceil(total_panels_min / TRUCK_LIMIT);
+        const trucks_needed_max = Math.ceil(total_panels_max / TRUCK_LIMIT);
+        const truckStr = trucks_needed_min === trucks_needed_max ? trucks_needed_min : `${trucks_needed_min} - ${trucks_needed_max}`;
+
+        // Updated: Removed Trucks Required from this summary
         document.getElementById("summaryText").innerHTML = `
-            <strong>Capacity:</strong> ${total_kw.toLocaleString(undefined, {minimumFractionDigits: 2})} kW &nbsp;|&nbsp;
-            <strong>Total Mass:</strong> ${total_kg.toLocaleString(undefined, {minimumFractionDigits: 2})} kg &nbsp;|&nbsp;
-            <strong>Total Panels:</strong> ${Math.round(total_panels).toLocaleString()} panels &nbsp;|&nbsp;
-            <strong>Trucks Required:</strong> ${trucksNeeded}
+            <strong>Capacity:</strong> ${formatRangeOutput(total_kw_min, total_kw_max, 'float')} kW &nbsp;|&nbsp;
+            <strong>Total Mass:</strong> ${formatRangeOutput(total_kg_min, total_kg_max, 'float')} kg &nbsp;|&nbsp;
+            <strong>Total Panels:</strong> ${formatRangeOutput(total_panels_min, total_panels_max, 'int')} panels
         `;
 
-        // -------------------------------------------------------------
-        // CONVENTIONAL RECYCLING LOGIC (LEFT SIDE)
-        // -------------------------------------------------------------
+        // ======================= CONVENTIONAL RECYCLING =======================
 
-        // 2. Path 1: Power Station -> Closest Recycling Site
+        // Updated: Trucks required is now displayed strictly under the Conventional Recycling column
+        document.getElementById("convTrucksText").innerText = `Total Trucks Required: ${truckStr}`;
+
         const rsPromises = recyclingSites.map(async rs => {
             let route = await getOSRMData(ps.Latitude, ps.Longitude, rs.Latitude, rs.Longitude);
             return { rs, route };
@@ -488,14 +501,17 @@
         });
 
         let rt_dist_1 = minRoute1.distance * 2;
-        let fuel_cost_1 = rt_dist_1 * FUEL_EFF * DIESEL_PRICE * trucksNeeded;
-        let labour_cost_1 = LABOUR_RATE * trucksNeeded * ((rt_dist_1 / AVG_SPEED) + ONSITE_HRS_1);
-        let total_cost_1 = fuel_cost_1 + labour_cost_1;
+        let fuel_cost_1_min = rt_dist_1 * FUEL_EFF * DIESEL_PRICE * trucks_needed_min;
+        let fuel_cost_1_max = rt_dist_1 * FUEL_EFF * DIESEL_PRICE * trucks_needed_max;
+        let labour_cost_1_min = LABOUR_RATE * trucks_needed_min * ((rt_dist_1 / AVG_SPEED) + ONSITE_HRS_1);
+        let labour_cost_1_max = LABOUR_RATE * trucks_needed_max * ((rt_dist_1 / AVG_SPEED) + ONSITE_HRS_1);
+        let total_cost_1_min = fuel_cost_1_min + labour_cost_1_min;
+        let total_cost_1_max = fuel_cost_1_max + labour_cost_1_max;
 
         document.getElementById("path1Text").innerHTML = `
             <strong>Destination:</strong> ${closestRS.Name}<br>
             <strong>Round-trip distance:</strong> ${rt_dist_1.toFixed(2)} km<br>
-            <strong>Path 1 Cost:</strong> $${total_cost_1.toFixed(2)}
+            <strong>Path 1 Cost:</strong> $${formatRangeOutput(total_cost_1_min, total_cost_1_max, 'float')}
         `;
 
         if (map1Instance) map1Instance.remove();
@@ -503,15 +519,11 @@
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map1Instance);
         L.marker([ps.Latitude, ps.Longitude], {icon: iconPS}).addTo(map1Instance).bindPopup("Power Station: " + ps.Name);
         L.marker([closestRS.Latitude, closestRS.Longitude], {icon: iconRS}).addTo(map1Instance).bindPopup("Recycling Hub: " + closestRS.Name);
-        if (minRoute1.geometry) {
-            L.geoJSON(minRoute1.geometry, {style: {color: 'red', weight: 4}}).addTo(map1Instance);
-        }
+        if (minRoute1.geometry) L.geoJSON(minRoute1.geometry, {style: {color: 'red', weight: 4}}).addTo(map1Instance);
 
-        // 3. Path 2: Recycling Site -> Suppliers
         const materials = Object.keys(MAT_COMPS);
-        let total_cost_2 = 0;
-        let path2HTML = "";
-        let supplierGeoJson = [];
+        let total_cost_2_min = 0; let total_cost_2_max = 0;
+        let path2HTML = ""; let supplierGeoJson = [];
 
         for (const mat of materials) {
             const matSupps = suppliers.filter(s => s.Material === mat);
@@ -528,25 +540,30 @@
                 if (res.route.distance < minRoute2.distance) { minRoute2 = res.route; bestSupp = res.supp; }
             });
 
-            let mat_kg = total_kg * MAT_COMPS[mat];
-            let mat_trucks = Math.ceil(mat_kg / 7000);
-            if(mat_trucks > 0) {
+            let mat_kg_min = total_kg_min * MAT_COMPS[mat];
+            let mat_kg_max = total_kg_max * MAT_COMPS[mat];
+            let mat_trucks_min = Math.ceil(mat_kg_min / 7000);
+            let mat_trucks_max = Math.ceil(mat_kg_max / 7000);
+            
+            if(mat_trucks_max > 0) {
                 let mat_rt_dist = minRoute2.distance * 2;
-                let mat_fuel = mat_rt_dist * FUEL_EFF * DIESEL_PRICE * mat_trucks;
-                let mat_labour = LABOUR_RATE * mat_trucks * ((mat_rt_dist / AVG_SPEED) + ONSITE_HRS_2);
-                let mat_cost = mat_fuel + mat_labour;
-                total_cost_2 += mat_cost;
+                let mat_cost_min = 0, mat_cost_max = 0;
+                
+                if(mat_trucks_min > 0) mat_cost_min = (mat_rt_dist * FUEL_EFF * DIESEL_PRICE * mat_trucks_min) + (LABOUR_RATE * mat_trucks_min * ((mat_rt_dist / AVG_SPEED) + ONSITE_HRS_2));
+                if(mat_trucks_max > 0) mat_cost_max = (mat_rt_dist * FUEL_EFF * DIESEL_PRICE * mat_trucks_max) + (LABOUR_RATE * mat_trucks_max * ((mat_rt_dist / AVG_SPEED) + ONSITE_HRS_2));
+
+                total_cost_2_min += mat_cost_min;
+                total_cost_2_max += mat_cost_max;
 
                 path2HTML += `<div class="mb-2 border-bottom pb-2">
-                                <strong>${mat}</strong> (${mat_kg.toFixed(2)} kg) ➔ ${bestSupp.Name}<br>
-                                <span class="text-muted small">Trucks: ${mat_trucks} | Round-trip: ${mat_rt_dist.toFixed(2)} km | <strong>Cost: $${mat_cost.toFixed(2)}</strong></span>
+                                <strong>${mat}</strong> (${formatRangeOutput(mat_kg_min, mat_kg_max, 'float')} kg) ➔ ${bestSupp.Name}<br>
+                                <span class="text-muted small">Round-trip: ${mat_rt_dist.toFixed(2)} km | <strong>Cost: $${formatRangeOutput(mat_cost_min, mat_cost_max, 'float')}</strong></span>
                               </div>`;
-                
                 supplierGeoJson.push({ supp: bestSupp, route: minRoute2.geometry, mat: mat });
             }
         }
         
-        document.getElementById("path2Text").innerHTML = path2HTML + `<div class="mt-3"><strong>Total Path 2 Cost:</strong> $${total_cost_2.toFixed(2)}</div>`;
+        document.getElementById("path2Text").innerHTML = path2HTML + `<div class="mt-3"><strong>Total Path 2 Cost:</strong> $${formatRangeOutput(total_cost_2_min, total_cost_2_max, 'float')}</div>`;
 
         if (map2Instance) map2Instance.remove();
         map2Instance = L.map('map2').setView([closestRS.Latitude, closestRS.Longitude], 9);
@@ -556,38 +573,34 @@
         const colors = ['#FF0000', '#0000FF', '#008000', '#800080', '#FFA500', '#00FFFF'];
         supplierGeoJson.forEach((item, idx) => {
             L.marker([item.supp.Latitude, item.supp.Longitude], {icon: iconSupp}).addTo(map2Instance).bindPopup(`${item.supp.Name} (${item.mat})`);
-            if (item.route) {
-                L.geoJSON(item.route, {style: {color: colors[idx % colors.length], weight: 3, opacity: 0.8}}).addTo(map2Instance);
-            }
+            if (item.route) L.geoJSON(item.route, {style: {color: colors[idx % colors.length], weight: 3, opacity: 0.8}}).addTo(map2Instance);
         });
 
-        // 4. Financial Calculation (Conventional)
-        let total_project_cost = total_cost_1 + total_cost_2;
-        
-        // Dynamically applying both worth assumptions based on setup menu inputs
-        let panel_worth = (total_kg * WORTH_PER_KG);
-        
-        let profit = panel_worth - total_project_cost;
-
-        document.getElementById("totalCostText").innerText = `Total Route Cost: $${total_project_cost.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
-        document.getElementById("worthText").innerText = `Est. Material Worth: $${panel_worth.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
-        document.getElementById("profitText").innerText = `Est. Profit: $${profit.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
+        let total_project_cost_min = total_cost_1_min + total_cost_2_min;
+        let total_project_cost_max = total_cost_1_max + total_cost_2_max;
+        document.getElementById("totalCostConvText").innerText = `$${formatRangeOutput(total_project_cost_min, total_project_cost_max, 'float')}`;
 
 
-        // -------------------------------------------------------------
-        // MOBILE RECYCLING LOGIC (RIGHT SIDE)
-        // -------------------------------------------------------------
+        // ======================= MOBILE RECYCLING =======================
+        let days_process_min = Math.ceil(total_kg_min / PROCESSING_CAPACITY_KG_DAY);
+        let days_process_max = Math.ceil(total_kg_max / PROCESSING_CAPACITY_KG_DAY);
 
-        if (map3Instance) map3Instance.remove();
-        map3Instance = L.map('map3').setView([ps.Latitude, ps.Longitude], 9);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map3Instance);
-        
-        // Add Power Station marker (Origin for Mobile)
-        L.marker([ps.Latitude, ps.Longitude], {icon: iconMobileOrigin}).addTo(map3Instance).bindPopup("Power Station (Origin): " + ps.Name);
+        let total_onsite_hrs_min = MOBILE_SETUP_HRS + (days_process_min * WORKING_HRS_DAY) + MOBILE_TEARDOWN_HRS;
+        let total_onsite_hrs_max = MOBILE_SETUP_HRS + (days_process_max * WORKING_HRS_DAY) + MOBILE_TEARDOWN_HRS;
 
-        let mobileGeoJson = [];
+        let daily_amortisation = MOBILE_CAPEX / (MOBILE_LIFESPAN_YRS * DAYS_OPERATED_YR);
+        let capex_cost_min = days_process_min * daily_amortisation;
+        let capex_cost_max = days_process_max * daily_amortisation;
 
-        // Loop through all materials to find closest supplier directly from Power Station
+        let processing_labour_cost_min = total_onsite_hrs_min * LABOUR_RATE;
+        let processing_labour_cost_max = total_onsite_hrs_max * LABOUR_RATE;
+
+        let total_processing_min = capex_cost_min + processing_labour_cost_min;
+        let total_processing_max = capex_cost_max + processing_labour_cost_max;
+
+        let mobile_trans_cost_min = 0; let mobile_trans_cost_max = 0;
+        let mobileHTML = ""; let mobileGeoJson = [];
+
         for (const mat of materials) {
             const matSupps = suppliers.filter(s => s.Material === mat);
             if(matSupps.length === 0) continue;
@@ -604,26 +617,60 @@
             });
 
             if (bestSupp) {
-                mobileGeoJson.push({ supp: bestSupp, route: minRoute.geometry, mat: mat });
+                let rt_dist_km = minRoute.distance * 2;
+                let mat_kg_min = total_kg_min * MAT_COMPS[mat];
+                let mat_kg_max = total_kg_max * MAT_COMPS[mat];
+                
+                let mat_trucks_min = Math.ceil(mat_kg_min / 7000);
+                let mat_trucks_max = Math.ceil(mat_kg_max / 7000);
+                
+                if (mat_trucks_max > 0) {
+                    if(mat_trucks_min > 0) mat_trucks_min = Math.max(1, mat_trucks_min);
+                    if(mat_trucks_max > 0) mat_trucks_max = Math.max(1, mat_trucks_max);
+
+                    let m_cost_min = 0, m_cost_max = 0;
+                    if(mat_trucks_min > 0) m_cost_min = (rt_dist_km * FUEL_EFF * DIESEL_PRICE * mat_trucks_min) + (LABOUR_RATE * mat_trucks_min * ((rt_dist_km / AVG_SPEED) + 2));
+                    if(mat_trucks_max > 0) m_cost_max = (rt_dist_km * FUEL_EFF * DIESEL_PRICE * mat_trucks_max) + (LABOUR_RATE * mat_trucks_max * ((rt_dist_km / AVG_SPEED) + 2));
+                    
+                    mobile_trans_cost_min += m_cost_min;
+                    mobile_trans_cost_max += m_cost_max;
+                    
+                    mobileHTML += `<div class="mb-2 border-bottom pb-2">
+                                    <strong>${mat}</strong> (${formatRangeOutput(mat_kg_min, mat_kg_max, 'float')} kg) ➔ ${bestSupp.Name}<br>
+                                    <span class="text-muted small">Round-trip: ${rt_dist_km.toFixed(2)} km | <strong>Cost: $${formatRangeOutput(m_cost_min, m_cost_max, 'float')}</strong></span>
+                                  </div>`;
+                    mobileGeoJson.push({ supp: bestSupp, route: minRoute.geometry, mat: mat });
+                }
             }
         }
 
-        // Draw Mobile Suppliers and Routes
+        document.getElementById("mobilePathText").innerHTML = mobileHTML;
+        document.getElementById("mobileProcessingCost").innerText = `$${formatRangeOutput(total_processing_min, total_processing_max, 'float')}`;
+        document.getElementById("mobileTransportCost").innerText = `$${formatRangeOutput(mobile_trans_cost_min, mobile_trans_cost_max, 'float')}`;
+        
+        let total_mobile_cost_min = total_processing_min + mobile_trans_cost_min;
+        let total_mobile_cost_max = total_processing_max + mobile_trans_cost_max;
+        document.getElementById("totalCostMobileText").innerText = `$${formatRangeOutput(total_mobile_cost_min, total_mobile_cost_max, 'float')}`;
+
+        if (map3Instance) map3Instance.remove();
+        map3Instance = L.map('map3').setView([ps.Latitude, ps.Longitude], 9);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map3Instance);
+        L.marker([ps.Latitude, ps.Longitude], {icon: iconMobileOrigin}).addTo(map3Instance).bindPopup("Power Station (Origin): " + ps.Name);
+
         mobileGeoJson.forEach((item, idx) => {
             L.marker([item.supp.Latitude, item.supp.Longitude], {icon: iconSupp}).addTo(map3Instance).bindPopup(`<b>${item.supp.Name}</b><br>Material: ${item.mat}`);
-            if (item.route) {
-                L.geoJSON(item.route, {style: {color: colors[idx % colors.length], weight: 4, opacity: 0.8}}).addTo(map3Instance);
-            }
+            if (item.route) L.geoJSON(item.route, {style: {color: colors[idx % colors.length], weight: 4, opacity: 0.8}}).addTo(map3Instance);
         });
 
 
-        // -------------------------------------------------------------
-        // FINALIZE UI
-        // -------------------------------------------------------------
+        // ======================= FINAL WORTH ESTIMATION =======================
+        let panel_worth_min = total_kg_min * WORTH_PER_KG;
+        let panel_worth_max = total_kg_max * WORTH_PER_KG;
+        document.getElementById("worthText").innerText = `$${formatRangeOutput(panel_worth_min, panel_worth_max, 'float')} AUD`;
+
         document.getElementById("loading").classList.add("hidden");
         document.getElementById("resultsArea").classList.remove("hidden");
         
-        // Fix Leaflet map rendering sizes when unhiding divs
         setTimeout(() => { 
             map1Instance.invalidateSize(); 
             map2Instance.invalidateSize(); 
