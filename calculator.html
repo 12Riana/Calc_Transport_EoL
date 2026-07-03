@@ -59,8 +59,9 @@
         <div class="card shadow-sm mb-4 border-0">
             <div class="card-body bg-white rounded">
                 <h5 class="card-title text-center mb-4">Estimator Inputs</h5>
+                
                 <div class="row align-items-end g-3">
-                    <div class="col-md-2">
+                    <div class="col-md-3">
                         <label class="form-label fw-bold">Select Unit:</label>
                         <select id="unitSelect" class="form-select">
                             <option value="kw">Kilowatts (kW)</option>
@@ -69,24 +70,57 @@
                         </select>
                     </div>
                     
-                    <div class="col-md-2">
+                    <div class="col-md-3">
                         <label class="form-label fw-bold">Min Value:</label>
                         <input type="number" id="unitValueMin" class="form-control" placeholder="Min" value="1000">
                     </div>
 
-                    <div class="col-md-2">
+                    <div class="col-md-3">
                         <label class="form-label fw-bold">Max Value:</label>
                         <input type="number" id="unitValueMax" class="form-control" placeholder="Max" value="1066">
                     </div>
                     
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <label class="form-label fw-bold">Select Power Station:</label>
                         <input list="station-list" id="powerStationInput" class="form-control" placeholder="Type to search...">
                         <datalist id="station-list"></datalist>
                     </div>
+                </div>
 
+                <hr class="my-4">
+
+                <div class="row mb-3">
+                    <div class="col-12 text-center">
+                        <h6 class="fw-bold text-secondary mb-3">Do you want to estimate the transportation cost from specific recycling site?</h6>
+                        <div class="btn-group" role="group">
+                            <button type="button" class="btn btn-primary active" id="btnCustomNo" onclick="toggleCustomRS(false)">No, calculate transportation cost based on closest recycling site to the solar farm</button>
+                            <button type="button" class="btn btn-outline-primary" id="btnCustomYes" onclick="toggleCustomRS(true)">Yes, I want to input recycling site address</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="customRSInput" class="row g-3 hidden bg-light p-3 rounded border mx-1 mb-4">
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Name of Recycling Site:</label>
+                        <input type="text" id="customRSName" class="form-control" placeholder="e.g. My Recycler">
+                    </div>
+                    <div class="col-md-5">
+                        <label class="form-label fw-bold">Address:</label>
+                        <input type="text" id="customRSAddress" class="form-control" placeholder="e.g. 123 Green Way">
+                    </div>
                     <div class="col-md-2">
-                        <button class="btn btn-primary w-100" onclick="calculateCosts()">Calculate Costs</button>
+                        <label class="form-label fw-bold">Latitude:</label>
+                        <input type="number" id="customRSLat" class="form-control" placeholder="e.g. -33.8688" step="any">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold">Longitude:</label>
+                        <input type="number" id="customRSLon" class="form-control" placeholder="e.g. 151.2093" step="any">
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-12 text-center">
+                        <button class="btn btn-success btn-lg w-50" onclick="calculateCosts()">Calculate Costs</button>
                     </div>
                 </div>
                 
@@ -109,7 +143,7 @@
                     <p id="convTrucksText" class="text-center fs-5 fw-bold text-primary mb-4"></p>
                     
                     <div class="result-box">
-                        <h5 class="text-primary">Path 1: Power Station → Closest Recycling Site</h5>
+                        <h5 class="text-primary">Path 1: Power Station → Recycling Site</h5>
                         <p id="path1Text" class="fs-6"></p>
                         <div id="map1" class="map-container mb-3"></div>
                     </div>
@@ -130,7 +164,7 @@
                     <h3 class="text-center mb-4 fw-bold text-secondary">Mobile Recycling</h3>
                     
                     <div class="result-box">
-                        <h5 class="text-primary">Path: Power Station → Material Suppliers</h5>
+                        <h5 class="text-primary">Path: Origin → Material Suppliers</h5>
                         <div id="mobilePathText" class="fs-6"></div>
                         <div id="map3" class="map-container mb-3"></div>
                     </div>
@@ -308,6 +342,25 @@
     const iconSupp = L.divIcon({ className: 'custom-marker marker-orange', html: '<i class="fa-solid fa-building"></i>', iconSize: [30, 30], iconAnchor: [15, 15] });
     const iconMobileOrigin = L.divIcon({ className: 'custom-marker marker-red', html: '<i class="fa-solid fa-bolt"></i>', iconSize: [30, 30], iconAnchor: [15, 15] });
 
+    // Custom Recycling Site Toggle
+    let useCustomRS = false;
+    function toggleCustomRS(isCustom) {
+        useCustomRS = isCustom;
+        if (isCustom) {
+            document.getElementById('btnCustomYes').classList.replace('btn-outline-primary', 'btn-primary');
+            document.getElementById('btnCustomYes').classList.add('active');
+            document.getElementById('btnCustomNo').classList.replace('btn-primary', 'btn-outline-primary');
+            document.getElementById('btnCustomNo').classList.remove('active');
+            document.getElementById('customRSInput').classList.remove('hidden');
+        } else {
+            document.getElementById('btnCustomNo').classList.replace('btn-outline-primary', 'btn-primary');
+            document.getElementById('btnCustomNo').classList.add('active');
+            document.getElementById('btnCustomYes').classList.replace('btn-primary', 'btn-outline-primary');
+            document.getElementById('btnCustomYes').classList.remove('active');
+            document.getElementById('customRSInput').classList.add('hidden');
+        }
+    }
+
     function openSettingsForm() {
         document.getElementById('settingsMenu').classList.add('hidden');
         document.getElementById('settingsModal').classList.remove('hidden');
@@ -451,6 +504,19 @@
 
         if(!valMin || !valMax || valMin <= 0 || valMax <= 0) { alert("Please enter valid positive values for the range."); return; }
 
+        // Process custom RS if toggled
+        let customRSObj = null;
+        if (useCustomRS) {
+            const cName = document.getElementById("customRSName").value.trim();
+            const cLat = parseFloat(document.getElementById("customRSLat").value);
+            const cLon = parseFloat(document.getElementById("customRSLon").value);
+            if (!cName || isNaN(cLat) || isNaN(cLon)) {
+                alert("Please properly fill in Name, Latitude, and Longitude for the specific recycling site.");
+                return;
+            }
+            customRSObj = { Name: cName, Latitude: cLat, Longitude: cLon };
+        }
+
         let vMin = Math.min(valMin, valMax);
         let vMax = Math.max(valMin, valMax);
 
@@ -477,7 +543,6 @@
         const trucks_needed_max = Math.ceil(total_panels_max / TRUCK_LIMIT);
         const truckStr = trucks_needed_min === trucks_needed_max ? trucks_needed_min : `${trucks_needed_min} - ${trucks_needed_max}`;
 
-        // Updated: Removed Trucks Required from this summary
         document.getElementById("summaryText").innerHTML = `
             <strong>Capacity:</strong> ${formatRangeOutput(total_kw_min, total_kw_max, 'float')} kW &nbsp;|&nbsp;
             <strong>Total Mass:</strong> ${formatRangeOutput(total_kg_min, total_kg_max, 'float')} kg &nbsp;|&nbsp;
@@ -485,22 +550,27 @@
         `;
 
         // ======================= CONVENTIONAL RECYCLING =======================
-
-        // Updated: Trucks required is now displayed strictly under the Conventional Recycling column
         document.getElementById("convTrucksText").innerText = `Total Trucks Required: ${truckStr}`;
 
-        const rsPromises = recyclingSites.map(async rs => {
-            let route = await getOSRMData(ps.Latitude, ps.Longitude, rs.Latitude, rs.Longitude);
-            return { rs, route };
-        });
-        const rsResults = await Promise.all(rsPromises);
-        let closestRS = null; let minRoute1 = { distance: Infinity };
-        
-        rsResults.forEach(res => {
-            if (res.route.distance < minRoute1.distance) { minRoute1 = res.route; closestRS = res.rs; }
-        });
+        let closestRS = null; 
+        let minRoute1 = { distance: Infinity };
 
-        let rt_dist_1 = minRoute1.distance * 2;
+        if (customRSObj) {
+            closestRS = customRSObj;
+            minRoute1 = await getOSRMData(ps.Latitude, ps.Longitude, closestRS.Latitude, closestRS.Longitude);
+        } else {
+            const rsPromises = recyclingSites.map(async rs => {
+                let route = await getOSRMData(ps.Latitude, ps.Longitude, rs.Latitude, rs.Longitude);
+                return { rs, route };
+            });
+            const rsResults = await Promise.all(rsPromises);
+            
+            rsResults.forEach(res => {
+                if (res.route.distance < minRoute1.distance) { minRoute1 = res.route; closestRS = res.rs; }
+            });
+        }
+
+        let rt_dist_1 = minRoute1.distance !== Infinity ? minRoute1.distance * 2 : 0;
         let fuel_cost_1_min = rt_dist_1 * FUEL_EFF * DIESEL_PRICE * trucks_needed_min;
         let fuel_cost_1_max = rt_dist_1 * FUEL_EFF * DIESEL_PRICE * trucks_needed_max;
         let labour_cost_1_min = LABOUR_RATE * trucks_needed_min * ((rt_dist_1 / AVG_SPEED) + ONSITE_HRS_1);
@@ -546,7 +616,7 @@
             let mat_trucks_max = Math.ceil(mat_kg_max / 7000);
             
             if(mat_trucks_max > 0) {
-                let mat_rt_dist = minRoute2.distance * 2;
+                let mat_rt_dist = minRoute2.distance !== Infinity ? minRoute2.distance * 2 : 0;
                 let mat_cost_min = 0, mat_cost_max = 0;
                 
                 if(mat_trucks_min > 0) mat_cost_min = (mat_rt_dist * FUEL_EFF * DIESEL_PRICE * mat_trucks_min) + (LABOUR_RATE * mat_trucks_min * ((mat_rt_dist / AVG_SPEED) + ONSITE_HRS_2));
@@ -568,7 +638,7 @@
         if (map2Instance) map2Instance.remove();
         map2Instance = L.map('map2').setView([closestRS.Latitude, closestRS.Longitude], 9);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map2Instance);
-        L.marker([closestRS.Latitude, closestRS.Longitude], {icon: iconRS}).addTo(map2Instance).bindPopup("Recycling Hub");
+        L.marker([closestRS.Latitude, closestRS.Longitude], {icon: iconRS}).addTo(map2Instance).bindPopup("Recycling Hub: " + closestRS.Name);
         
         const colors = ['#FF0000', '#0000FF', '#008000', '#800080', '#FFA500', '#00FFFF'];
         supplierGeoJson.forEach((item, idx) => {
@@ -601,12 +671,18 @@
         let mobile_trans_cost_min = 0; let mobile_trans_cost_max = 0;
         let mobileHTML = ""; let mobileGeoJson = [];
 
+        // For mobile, adjust origin if custom recycling site is provided
+        let mobileOriginLat = customRSObj ? customRSObj.Latitude : ps.Latitude;
+        let mobileOriginLon = customRSObj ? customRSObj.Longitude : ps.Longitude;
+        let mobileOriginName = customRSObj ? customRSObj.Name : ps.Name;
+        let mobileOriginLabel = customRSObj ? "Custom Recycling Site" : "Power Station";
+
         for (const mat of materials) {
             const matSupps = suppliers.filter(s => s.Material === mat);
             if(matSupps.length === 0) continue;
 
             const suppPromises = matSupps.map(async supp => {
-                let route = await getOSRMData(ps.Latitude, ps.Longitude, supp.Latitude, supp.Longitude);
+                let route = await getOSRMData(mobileOriginLat, mobileOriginLon, supp.Latitude, supp.Longitude);
                 return { supp, route };
             });
             const suppResults = await Promise.all(suppPromises);
@@ -617,7 +693,7 @@
             });
 
             if (bestSupp) {
-                let rt_dist_km = minRoute.distance * 2;
+                let rt_dist_km = minRoute.distance !== Infinity ? minRoute.distance * 2 : 0;
                 let mat_kg_min = total_kg_min * MAT_COMPS[mat];
                 let mat_kg_max = total_kg_max * MAT_COMPS[mat];
                 
@@ -653,9 +729,9 @@
         document.getElementById("totalCostMobileText").innerText = `$${formatRangeOutput(total_mobile_cost_min, total_mobile_cost_max, 'float')}`;
 
         if (map3Instance) map3Instance.remove();
-        map3Instance = L.map('map3').setView([ps.Latitude, ps.Longitude], 9);
+        map3Instance = L.map('map3').setView([mobileOriginLat, mobileOriginLon], 9);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map3Instance);
-        L.marker([ps.Latitude, ps.Longitude], {icon: iconMobileOrigin}).addTo(map3Instance).bindPopup("Power Station (Origin): " + ps.Name);
+        L.marker([mobileOriginLat, mobileOriginLon], {icon: iconMobileOrigin}).addTo(map3Instance).bindPopup(mobileOriginLabel + " (Origin): " + mobileOriginName);
 
         mobileGeoJson.forEach((item, idx) => {
             L.marker([item.supp.Latitude, item.supp.Longitude], {icon: iconSupp}).addTo(map3Instance).bindPopup(`<b>${item.supp.Name}</b><br>Material: ${item.mat}`);

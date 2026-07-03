@@ -100,7 +100,7 @@ To get the calculator up and running on their local machine, user needs to follo
 ```bash
    python -m http.server
 ```
-  (Note: If the above command doesn't work, try `python3 -m http.server` instead).
+  (Note: If you use mac OS, type `python3 -m http.server` instead).
 
 4. Leave the terminal running, open one web browser (Chrome, Safari, Edge, etc.), and go to the following URL:
 ```bash
