@@ -1,4 +1,4 @@
-# Solar EoL Transportation Cost Estimator
+# Quantitative Logistics and Transportation Cost Estimation Framework for End-of-Life Photovoltaic Module Recycling
 
 ## Background and Motivation
 - Australia is one of the top users of solar panels in the world. As the panels installed years ago start reaching the end of their 20 to 25-year lifespans, we are going to face a massive amount of solar waste.
